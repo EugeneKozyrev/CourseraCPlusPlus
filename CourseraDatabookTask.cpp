@@ -5,26 +5,33 @@ void DUMP (const std::map<std::string, std::string>& m){
     if(m.empty())
         std::cout << "There are no countries in the world" << std::endl;
     else{
-        for(const auto& [key, val]: m){
-            std::cout << key <<  "/"  << val << std::endl;
+        for(const auto& item: m){
+            std::cout << item.first <<  "/"  << item.second << " ";
         }
     }
+    std::cout << std::endl;
 }
 
 void ABOUT(std::map<std::string, std::string>& m, std::string& str){
     if(m.count(str)){
-        std::cout << str << " has capital " << m[str] << std::endl;
+        std::cout << "Country " << str << " has capital " << m[str] << std::endl;
     } else {
-        std::cout << str << " doesn't exist" << std::endl;
+        std::cout << "Country " << str << " doesn't exist" << std::endl;
     }
 }
 
 void RENAME(std::map<std::string, std::string>& m, std::string& old_country_name, std::string& new_country_name){
-    if(m.count(new_country_name) || m[new_country_name] == m[old_country_name] || !m.count(old_country_name)){
+    if(m.count(new_country_name)){
+        std::cout << "Incorrect rename, skip" << std::endl;
+    }
+    else if(!m.count(old_country_name)){
+        std::cout << "Incorrect rename, skip" << std::endl;
+    }
+    else if((m.count(old_country_name)) && (new_country_name == m[old_country_name])){
         std::cout << "Incorrect rename, skip" << std::endl;
     } else {
         std::cout << "Country " << old_country_name <<  " with capital " << m[old_country_name] << " has been renamed to " << new_country_name << std::endl;
-        m.emplace(new_country_name, m[old_country_name]);
+        m[new_country_name] = m[old_country_name];
         m.erase(old_country_name);
     }
 }
