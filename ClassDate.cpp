@@ -51,7 +51,7 @@ public:
         return false;
     }
 
-    int  DeleteDate(const Date& date){
+    int DeleteDate(const Date& date){
         int eventCount = DateBase.at(date).size();
         DateBase.erase(date);
         return eventCount;
@@ -67,7 +67,7 @@ public:
         std::cout.fill('0');
         for(const auto& elem : DateBase){
             for(const auto& event : elem.second){
-                std::cout << std::setw(4) << elem.first.GetYear() << '-' << std::setw(2) << elem.first.GetMonth() << '-' << std::setw(2) << elem.first.GetDay() << ' ' << event << '\n';
+                std::cout << std::setw(4) << elem.first.GetDay() << '-' << std::setw(2) << elem.first.GetMonth() << '-' << std::setw(2) << elem.first.GetYear() << ' ' << event << '\n';
             }
         }
     }
@@ -76,46 +76,51 @@ private:
     std::map<Date, std::set<std::string>> DateBase;
 };
 
-void WriteToVariable(std::stringstream& in, int& dataField){
+int WriteToVariable(std::stringstream& in, int dataField){
     char symbol;
     while(std::isdigit(in.peek())){
         symbol = in.peek();
         dataField = dataField * 10 + (symbol - 48);
         in.ignore(1);
     }
+    return dataField;
 }
 
 Date ReadFunction(std::string& inputString){
     char s1 = 0, s2 = 0;
     std::stringstream inputStringStream(inputString);
     const std::string errString = "Wrong date format: ";
-    int inputYear, inputMonth, inputDay;
-
-    if(!std::isdigit(inputStringStream.peek()) && inputStringStream.peek() != ' ') throw std::invalid_argument(errString + inputString);
-    WriteToVariable(inputStringStream, inputYear);
+    int inputYear = 0, inputMonth = 0, inputDay = 0;
+    if(inputString.find('-') == std::string::npos) throw std::invalid_argument(errString + inputString);
+    if(!std::isdigit(inputStringStream.peek()) && inputStringStream.peek() != ' ' && inputStringStream.peek() != '-') throw std::invalid_argument(errString + inputString);
+    char minus = inputStringStream.peek();
+    if(minus == '-') inputStringStream.ignore(1);
+    inputYear = WriteToVariable(inputStringStream, inputYear);
+    if(minus == '-') inputYear *= -1;
     if(inputStringStream.peek() != '-'){
         std::cout << inputStringStream.peek();
         throw std::invalid_argument(errString + inputString);
     }
     inputStringStream >> s1;
-    if(!std::isdigit(inputStringStream.peek()) && inputStringStream.peek() != '-') throw std::invalid_argument(errString + inputString);
-    char minus = inputStringStream.peek();
+    if(!std::isdigit(inputStringStream.peek()) && inputStringStream.peek() != '+' && inputStringStream.peek() != '-') throw std::invalid_argument(errString + inputString);
+    minus = inputStringStream.peek();
     if(minus == '-') inputStringStream.ignore(1);
-    WriteToVariable(inputStringStream, inputMonth);
+    if(inputStringStream.peek() == '+') inputStringStream.ignore(1);
+    inputMonth = WriteToVariable(inputStringStream, inputMonth);
     if(minus == '-') inputMonth *= -1;
     if(inputStringStream.peek() != '-') throw std::invalid_argument(errString + inputString);
     inputStringStream >> s2;
-    if(!std::isdigit(inputStringStream.peek()) && inputStringStream.peek() != '-') throw std::invalid_argument(errString + inputString);
+    if(!std::isdigit(inputStringStream.peek()) && inputStringStream.peek() != '+'  && inputStringStream.peek() != '-') throw std::invalid_argument(errString + inputString);
     minus = inputStringStream.peek();
     if(minus == '-') inputStringStream.ignore(1);
-    WriteToVariable(inputStringStream, inputDay);
+    if(inputStringStream.peek() == '+') inputStringStream.ignore(1);
+    inputDay = WriteToVariable(inputStringStream, inputDay);
     if(minus == '-') inputDay *= -1;
     if(!inputStringStream.eof() && inputStringStream.peek() != ' ') throw std::invalid_argument(errString + inputString);
 
-    if(inputYear > 9999 || inputYear < 0) throw std::exception();
+    //if(inputYear > 9999 || inputYear < 0) throw std::exception();
     if(inputMonth > 12 || inputMonth <= 0) throw std::invalid_argument("Month value is invalid: " + std::to_string(inputMonth));
     if(inputDay > 31 || inputDay <= 0) throw std::invalid_argument("Day value is invalid: " + std::to_string(inputDay));
-    //
     return {inputYear, inputMonth, inputDay};
 }
 
@@ -164,7 +169,8 @@ int main() {
                     }
                 } else{
                     try {
-                        std::cout << "Deleted " << db.DeleteDate(d) << "events" << '\n';
+                        int count = db.DeleteDate(d);
+                        std::cout << "Deleted " << count << " events" << '\n';
                     } catch (std::exception& e){
                         std::cout << "Deleted 0 events" << '\n';
                     }
